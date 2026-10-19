@@ -1,0 +1,23 @@
+{
+  "run_id": "run-20261019-084412",
+  "started_at": "2026-10-19T16:44:12+08:00",
+  "max_total_calls": 50,
+  "max_calls_per_task": 12,
+  "max_prompt_chars": 30000,
+  "max_completion_tokens": 4096,
+  "revision_limit": 1,
+  "models": {
+    "planner": "deepseek-flash",
+    "business": "qwen3.8-flash",
+    "policy": "qwen3.8-flash",
+    "auditor": "kimi-k2.7-code"
+  },
+  "providers": {
+    "planner": "https://api.deepseek.com/v1",
+    "business": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "policy": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "auditor": "https://api.moonshot.cn/v1"
+  },
+  "calls_used": 50,
+  "finished_at": "2026-10-19T17:05:02+08:00"
+}

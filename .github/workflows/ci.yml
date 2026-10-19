@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: |
+          ruff check src tests eval
+          ruff format --check src tests eval
+      - name: Validate eval cases
+        run: |
+          python -c "import json; cases=json.load(open('eval/cases.json', encoding='utf-8')); assert len(cases)==8, len(cases); assert sum(c['category']=='multi' for c in cases)==6; print('cases:', len(cases))"
+          python -c "import eval.harness; print('harness import ok')"
+      - name: Test
+        run: pytest -q
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t it-agent-collab:ci .
+      - name: Smoke test container
+        run: |
+          docker run --rm it-agent-collab:ci --version
+          docker run --rm it-agent-collab:ci models | tee /tmp/models.txt
+          grep -q "planner" /tmp/models.txt
+          grep -q "auditor" /tmp/models.txt
+          test "$(docker run --rm --entrypoint id it-agent-collab:ci -u)" = "10001"
