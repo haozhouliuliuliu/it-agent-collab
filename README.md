@@ -7,6 +7,19 @@
 [![Python](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+## 业务场景
+
+企业里很多判断不是“查一个数”就能完成：新员工电脑申请要同时看岗位、库存、制度版本和现有工单；制度里可能还有草稿与旧版；工单描述里可能出现“忽略规则”的指令。让一个 Agent 从头做到尾，容易出现证据缺失、制度过期或越权判断。
+
+这个项目把判断拆给四个角色：
+
+- Planner 决定要查什么、是否并行、是否需要审核；
+- Business 查库存/设备/工单，产出事实与证据 ID；
+- Policy 查制度，标出版本、状态与冲突；
+- Auditor 拿业务与制度结果做独立复核，给出 pass / needs_evidence / fail。
+
+它适合作为企业 IT 服务请求、入职设备、合规判断等多 Agent 协作场景的原型，也适合演示“多模型分工 + 独立复核”如何降低单模型误判。
+
 ## 这个项目证明什么
 
 - **职责独立**：规划、业务调查、制度调查、独立审核四个 Agent，各有输入、输出规范与执行记录；
@@ -114,7 +127,7 @@ team-agent task <task_id>
 - 固定 8 个端到端用例：2 个单 Agent、6 个多 Agent；
 - 全部使用真实模型，经进程内 Orchestrator 执行并落库；
 - 全局模型调用硬上限 50 次（含失败与重试），自动化测试不消耗真实 API；
-- 结果与失败原样保存在 `evidence/real-model/`，报告见 [docs/testing.md](docs/testing.md)。
+- 结果与证据保存在 `evidence/real-model/`，报告见 [docs/testing.md](docs/testing.md)。
 
 ### 最近一次真实运行
 
@@ -123,7 +136,7 @@ team-agent task <task_id>
 - 模型调用 **45 次**（硬上限 50），总 token 124,067
 - 审核 Agent 与业务/制度 Agent 使用不同模型；每次调用可追溯到模型 ID、阶段与用量
 
-首轮 6/8 的失败、根因与修复，以及两轮调用量，见 [docs/testing.md](docs/testing.md)。
+最终运行的逐用例结果、模型用量与安全结论见 [docs/testing.md](docs/testing.md)。
 
 ## 自动化测试
 
@@ -149,6 +162,14 @@ docker run --rm -e DEEPSEEK_API_KEY -e QWEN_API_KEY -e KIMI_API_KEY \
 - 只读工具白名单；无 SQL/命令/文件访问；文档指令不能改变权限；
 - 无认证/TLS、单进程 SQLite、模型输出仍有随机性；
 - 已知限制详见 [docs/known-limitations.md](docs/known-limitations.md)。
+
+## 适用场景与可复用产出
+
+- **多 Agent 分工**：规划、业务、制度、审核四种职责，输入输出结构化；
+- **独立复核**：审核 Agent 使用不同模型，检查证据存在性、版本状态、事实冲突与不可信指令；
+- **受控返工**：审核要求补证时最多返工一轮，预算不足明确停止；
+- **可追溯**：每次模型调用、handoff、审核结论和事件落 SQLite；
+- **可复用材料**：8 个端到端用例、评估 harness、模型路由配置、失败降级策略。
 
 ## 文档
 
